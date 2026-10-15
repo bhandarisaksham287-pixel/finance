@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Manager</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans h-full flex flex-col antialiased transition-colors duration-200">
+
+    <!-- Top Bar Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-600/30">
+                    <i class="fa-solid fa-briefcase text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white tracking-wide">BizFinance <span class="text-indigo-400 font-medium text-sm">Manager</span></h1>
+                    <p class="text-xs text-slate-400">Professional Cash & Digital Wallet Tracker</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- User Profile / Auth Area -->
+                <div id="auth-nav-container" class="flex items-center space-x-2">
+                    <!-- Dynamic Auth Buttons injected here -->
+                </div>
+
+                <button onclick="openTransactionModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-indigo-600/30 transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span class="hidden sm:inline">Add Transaction</span>
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs sm:text-sm border border-slate-700 transition-all cursor-pointer" title="Toggle Theme">
+                    <i id="darkModeIcon" class="fa-solid fa-sun text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+        <!-- KPI Cards Section -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Total Balance -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:shadow-md">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Balance</span>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-950/50 text-indigo-400 flex items-center justify-center">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h2 id="kpi-total-balance" class="text-2xl font-bold text-white">NPR 0.00</h2>
+                    <p class="text-xs text-slate-400 mt-1">Combined liquid assets</p>
+                </div>
+            </div>
+
+            <!-- Online Balance -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:shadow-md">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Online / Digital</span>
+                    <div class="w-10 h-10 rounded-xl bg-blue-950/50 text-blue-400 flex items-center justify-center">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h2 id="kpi-online-balance" class="text-2xl font-bold text-blue-400">NPR 0.00</h2>
+                    <p class="text-xs text-slate-400 mt-1">Wallets & Bank accounts</p>
+                </div>
+            </div>
+
+            <!-- Cash Balance -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:shadow-md">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Cash in Hand</span>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-950/50 text-emerald-400 flex items-center justify-center">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h2 id="kpi-cash-balance" class="text-2xl font-bold text-emerald-400">NPR 0.00</h2>
+                    <p class="text-xs text-slate-400 mt-1">Physical drawer cash</p>
+                </div>
+            </div>
+
+            <!-- Total Income -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:shadow-md">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Income</span>
+                    <div class="w-10 h-10 rounded-xl bg-green-950/50 text-green-400 flex items-center justify-center">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h2 id="kpi-total-income" class="text-2xl font-bold text-green-400">NPR 0.00</h2>
+                    <p class="text-xs text-green-400 mt-1 flex items-center"><i class="fa-solid fa-circle-check mr-1"></i> Inflows</p>
+                </div>
+            </div>
+
+            <!-- Total Expenses -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex flex-col justify-between transition-all hover:shadow-md sm:col-span-2 lg:col-span-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Expenses</span>
+                    <div class="w-10 h-10 rounded-xl bg-rose-950/50 text-rose-400 flex items-center justify-center">
+                        <i class="fa-solid fa-arrow-trend-down"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h2 id="kpi-total-expenses" class="text-2xl font-bold text-rose-400">NPR 0.00</h2>
+                    <p class="text-xs text-rose-400 mt-1 flex items-center"><i class="fa-solid fa-circle-exclamation mr-1"></i> Outflows</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-white">Income vs. Expenses Breakdown</h3>
+                    <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg font-medium">Overview</span>
+                </div>
+                <div class="relative flex-1 min-h-[250px] flex items-center justify-center">
+                    <canvas id="cashFlowChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-white">Online Money vs. Cash Share</h3>
+                    <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg font-medium">Payment Method</span>
+                </div>
+                <div class="relative flex-1 min-h-[250px] flex items-center justify-center">
+                    <canvas id="paymentShareChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transaction Table Section -->
+        <section class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-lg font-bold text-white">Transaction History</h3>
+                    <span id="transaction-count-badge" class="bg-slate-800 text-slate-300 text-xs font-semibold px-2.5 py-0.5 rounded-full">0 entries</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-search text-xs"></i>
+                        </span>
+                        <input type="text" id="filter-search" oninput="renderTransactions()" placeholder="Search description..." class="w-full sm:w-48 pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                    </div>
+                    <select id="filter-type" onchange="renderTransactions()" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                        <option value="ALL">All Types</option>
+                        <option value="INCOME">Income Only</option>
+                        <option value="EXPENSE">Expense Only</option>
+                    </select>
+                    <select id="filter-method" onchange="renderTransactions()" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                        <option value="ALL">All Payment Methods</option>
+                        <option value="ONLINE">Online Money / Wallets</option>
+                        <option value="CASH">Cash</option>
+                    </select>
+                    <button onclick="confirmClearData()" class="text-slate-400 hover:text-rose-600 p-2 rounded-xl transition-all hover:bg-rose-950/30 cursor-pointer" title="Clear all transactions">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-800/50 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            <th class="py-3 px-6">Date</th>
+                            <th class="py-3 px-6">Time</th>
+                            <th class="py-3 px-6">Description</th>
+                            <th class="py-3 px-6">Category</th>
+                            <th class="py-3 px-6">Method</th>
+                            <th class="py-3 px-6">Type</th>
+                            <th class="py-3 px-6 text-right">Amount</th>
+                            <th class="py-3 px-6 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-table-body" class="divide-y divide-slate-800 text-sm">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="empty-state" class="hidden py-16 text-center">
+                <div class="w-16 h-16 bg-slate-800 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-receipt text-2xl"></i>
+                </div>
+                <h4 class="text-base font-semibold text-slate-300">No transactions recorded yet</h4>
+                <p class="text-xs text-slate-400 mt-1">Click "Add Transaction" above to start logging your finances.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Sign In / Sign Up Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform scale-95 transition-transform duration-200" id="auth-content-box">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
+                <h3 id="auth-modal-title" class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket text-indigo-400"></i> Log In to Business Manager
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800 transition-all cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="p-6 space-y-4">
+                <div id="signup-name-field" class="hidden">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Business / User Name</label>
+                    <input type="text" id="auth-name" placeholder="e.g. John's Electronics" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Email Address</label>
+                    <input type="email" id="auth-email" required placeholder="owner@business.com" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Password</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+
+                <div id="auth-error-msg" class="hidden text-xs text-rose-400 font-medium bg-rose-950/30 p-2.5 rounded-xl border border-rose-900/40"></div>
+
+                <div class="pt-2 flex flex-col space-y-3">
+                    <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-600/30 transition-all cursor-pointer">
+                        Log In
+                    </button>
+                    <p class="text-xs text-center text-slate-400">
+                        <span id="auth-toggle-text">Don't have an account?</span>
+                        <button type="button" onclick="switchAuthMode()" id="auth-toggle-btn" class="text-indigo-400 hover:underline font-semibold ml-1 cursor-pointer">Sign Up</button>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div id="transaction-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform scale-95 transition-transform duration-200" id="modal-content-box">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
+                <h3 class="text-base font-bold text-white flex items-center">
+                    <i class="fa-solid fa-circle-plus text-indigo-400 mr-2"></i> Add New Transaction
+                </h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800 transition-all cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="transaction-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Type</label>
+                        <select id="tx-type" onchange="updateCategoryPresets()" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                            <option value="INCOME">Income</option>
+                            <option value="EXPENSE">Expense</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Amount (NPR)</label>
+                        <input type="number" step="0.01" min="0.01" id="tx-amount" required placeholder="0.00" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Description / Title</label>
+                    <input type="text" id="tx-description" required placeholder="e.g. Client Payment, Office Supplies, Inventory..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Category</label>
+                        <select id="tx-category" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Payment Method</label>
+                        <select id="tx-method" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                            <option value="ONLINE">Online Money / Digital Wallet</option>
+                            <option value="CASH">Cash in Hand</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Date & Time</label>
+                    <input type="datetime-local" id="tx-datetime" required class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-800">
+                    <button type="button" onclick="closeTransactionModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-all cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-all cursor-pointer">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Clear Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-slate-900 w-full max-w-sm rounded-2xl shadow-xl border border-slate-800 p-6 text-center transform scale-95 transition-transform duration-200" id="confirm-content-box">
+            <div class="w-12 h-12 bg-rose-950/50 text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">Clear All Transactions?</h4>
+            <p class="text-xs text-slate-400 mt-1">This action cannot be undone. All recorded data will be permanently removed.</p>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+                <button onclick="closeConfirmModal()" class="py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-semibold transition-all cursor-pointer">Cancel</button>
+                <button onclick="executeClearData()" class="py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all cursor-pointer">Delete All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let transactions = [];
+        let currentUser = null;
+        let isSignUpMode = false;
+        let cashFlowChartInstance = null;
+        let paymentShareChartInstance = null;
+
+        const categoriesMap = {
+            INCOME: ['Sales Revenue', 'Client Services', 'Digital Products', 'Investments', 'Other Income'],
+            EXPENSE: ['Inventory & Stock', 'Software & Hosting', 'Marketing & Ads', 'Rent & Utilities', 'Salaries', 'Office Supplies', 'Other Expense']
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('biz_finance_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('darkModeIcon').className = 'fa-solid fa-moon text-sm';
+            }
+
+            // Check logged in user session
+            const sessionUser = localStorage.getItem('biz_manager_active_user');
+            if (sessionUser) {
+                try { currentUser = JSON.parse(sessionUser); } catch(e) { currentUser = null; }
+            }
+
+            loadUserTransactions();
+            renderAuthUI();
+            updateCategoryPresets();
+            initCharts();
+            renderAll();
+        });
+
+        function loadUserTransactions() {
+            const key = currentUser ? `biz_tx_${currentUser.email}` : 'biz_finance_transactions';
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try { transactions = JSON.parse(saved); } catch(e) { transactions = []; }
+            } else {
+                transactions = [];
+            }
+        }
+
+        function saveToStorage() {
+            const key = currentUser ? `biz_tx_${currentUser.email}` : 'biz_finance_transactions';
+            localStorage.setItem(key, JSON.stringify(transactions));
+        }
+
+        /* --- AUTH SYSTEM LOGIC --- */
+        function renderAuthUI() {
+            const container = document.getElementById('auth-nav-container');
+            if (currentUser) {
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 bg-slate-800 border border-slate-700/70 px-3 py-1.5 rounded-xl">
+                        <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                            ${currentUser.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span class="text-xs font-semibold text-slate-200 hidden sm:inline">${escapeHtml(currentUser.name)}</span>
+                        <button onclick="handleLogout()" class="text-slate-400 hover:text-rose-400 ml-1 text-xs transition-colors cursor-pointer" title="Log Out">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="openAuthModal(false)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Log In
+                    </button>
+                    <button onclick="openAuthModal(true)" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer">
+                        Sign Up
+                    </button>
+                `;
+            }
+        }
+
+        function openAuthModal(signup = false) {
+            isSignUpMode = signup;
+            updateAuthModalState();
+            document.getElementById('auth-email').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-name').value = '';
+            document.getElementById('auth-error-msg').classList.add('hidden');
+
+            const modal = document.getElementById('auth-modal');
+            const box = document.getElementById('auth-content-box');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-95');
+            box.classList.add('scale-100');
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            const box = document.getElementById('auth-content-box');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+        }
+
+        function switchAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            updateAuthModalState();
+        }
+
+        function updateAuthModalState() {
+            const title = document.getElementById('auth-modal-title');
+            const nameField = document.getElementById('signup-name-field');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+
+            if (isSignUpMode) {
+                title.innerHTML = `<i class="fa-solid fa-user-plus text-indigo-400"></i> Create Business Account`;
+                nameField.classList.remove('hidden');
+                submitBtn.textContent = 'Create Account';
+                toggleText.textContent = 'Already have an account?';
+                toggleBtn.textContent = 'Log In';
+            } else {
+                title.innerHTML = `<i class="fa-solid fa-right-to-bracket text-indigo-400"></i> Log In to Business Manager`;
+                nameField.classList.add('hidden');
+                submitBtn.textContent = 'Log In';
+                toggleText.textContent = "Don't have an account?";
+                toggleBtn.textContent = 'Sign Up';
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            const password = document.getElementById('auth-password').value;
+            const name = document.getElementById('auth-name').value.trim();
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            const users = JSON.parse(localStorage.getItem('biz_manager_users') || '{}');
+
+            if (isSignUpMode) {
+                if (!name) {
+                    errorMsg.textContent = 'Please enter your business or user name.';
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                if (users[email]) {
+                    errorMsg.textContent = 'An account with this email already exists.';
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                users[email] = { email, password, name };
+                localStorage.setItem('biz_manager_users', JSON.stringify(users));
+                currentUser = { email, name };
+            } else {
+                if (!users[email] || users[email].password !== password) {
+                    errorMsg.textContent = 'Invalid email or password.';
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                currentUser = { email, name: users[email].name };
+            }
+
+            localStorage.setItem('biz_manager_active_user', JSON.stringify(currentUser));
+            closeAuthModal();
+            renderAuthUI();
+            loadUserTransactions();
+            renderAll();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('biz_manager_active_user');
+            renderAuthUI();
+            loadUserTransactions();
+            renderAll();
+        }
+
+        /* --- DASHBOARD FUNCTIONALITY --- */
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('biz_finance_theme', isDark ? 'dark' : 'light');
+            document.getElementById('darkModeIcon').className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
+        }
+
+        function openTransactionModal() {
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(now - tzOffset)).toISOString().slice(0, 16);
+            document.getElementById('tx-datetime').value = localISOTime;
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-description').value = '';
+            document.getElementById('tx-type').value = 'INCOME';
+            updateCategoryPresets();
+
+            const modal = document.getElementById('transaction-modal');
+            const box = document.getElementById('modal-content-box');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-95');
+            box.classList.add('scale-100');
+        }
+
+        function closeTransactionModal() {
+            const modal = document.getElementById('transaction-modal');
+            const box = document.getElementById('modal-content-box');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+        }
+
+        function updateCategoryPresets() {
+            const type = document.getElementById('tx-type').value;
+            const categorySelect = document.getElementById('tx-category');
+            categorySelect.innerHTML = '';
+            categoriesMap[type].forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                categorySelect.appendChild(opt);
+            });
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const type = document.getElementById('tx-type').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const description = document.getElementById('tx-description').value.trim();
+            const category = document.getElementById('tx-category').value;
+            const method = document.getElementById('tx-method').value;
+            const datetime = document.getElementById('tx-datetime').value;
+
+            if (!amount || isNaN(amount) || amount <= 0) return;
+
+            transactions.unshift({
+                id: 'tx_' + Date.now() + Math.random().toString(36).substring(2),
+                type, amount, description, category, method, datetime
+            });
+
+            saveToStorage();
+            closeTransactionModal();
+            renderAll();
+        }
+
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            saveToStorage();
+            renderAll();
+        }
+
+        function confirmClearData() {
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-content-box');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-95');
+            box.classList.add('scale-100');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-content-box');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+        }
+
+        function executeClearData() {
+            transactions = [];
+            saveToStorage();
+            closeConfirmModal();
+            renderAll();
+        }
+
+        function formatDateOnly(isoString) {
+            if (!isoString) return '';
+            const dateObj = new Date(isoString);
+            return isNaN(dateObj.getTime()) ? isoString : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatTime12(isoString) {
+            if (!isoString) return '';
+            const dateObj = new Date(isoString);
+            return isNaN(dateObj.getTime()) ? '' : dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function renderAll() {
+            renderKPIs();
+            renderTransactions();
+            updateCharts();
+        }
+
+        function renderKPIs() {
+            let totalIncome = 0, totalExpenses = 0, onlineBalance = 0, cashBalance = 0;
+
+            transactions.forEach(t => {
+                const amt = Number(t.amount);
+                if (t.type === 'INCOME') {
+                    totalIncome += amt;
+                    if (t.method === 'ONLINE') onlineBalance += amt;
+                    else cashBalance += amt;
+                } else {
+                    totalExpenses += amt;
+                    if (t.method === 'ONLINE') onlineBalance -= amt;
+                    else cashBalance -= amt;
+                }
+            });
+
+            const totalBalance = onlineBalance + cashBalance;
+
+            document.getElementById('kpi-total-balance').textContent = `NPR ${totalBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpi-online-balance').textContent = `NPR ${onlineBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpi-cash-balance').textContent = `NPR ${cashBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpi-total-income').textContent = `NPR ${totalIncome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpi-total-expenses').textContent = `NPR ${totalExpenses.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function renderTransactions() {
+            const searchQuery = document.getElementById('filter-search').value.toLowerCase();
+            const typeFilter = document.getElementById('filter-type').value;
+            const methodFilter = document.getElementById('filter-method').value;
+
+            const filtered = transactions.filter(t => {
+                const matchesSearch = t.description.toLowerCase().includes(searchQuery) || t.category.toLowerCase().includes(searchQuery);
+                const matchesType = typeFilter === 'ALL' || t.type === typeFilter;
+                const matchesMethod = methodFilter === 'ALL' || t.method === methodFilter;
+                return matchesSearch && matchesType && matchesMethod;
+            });
+
+            const tbody = document.getElementById('transaction-table-body');
+            const emptyState = document.getElementById('empty-state');
+            document.getElementById('transaction-count-badge').textContent = `${filtered.length} ${filtered.length === 1 ? 'entry' : 'entries'}`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+
+                const isIncome = t.type === 'INCOME';
+                const amtFormatted = (isIncome ? '+' : '-') + `NPR ${Number(t.amount).toFixed(2)}`;
+                const amtColor = isIncome ? 'text-green-400 font-semibold' : 'text-rose-400 font-semibold';
+                const methodBadge = t.method === 'ONLINE' 
+                    ? '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-950/50 text-blue-300"><i class="fa-solid fa-globe mr-1.5"></i> Online Money</span>' 
+                    : '<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-950/50 text-emerald-300"><i class="fa-solid fa-money-bill mr-1.5"></i> Cash</span>';
+
+                const typeBadge = isIncome 
+                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-green-950/50 text-green-300">Income</span>'
+                    : '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-rose-950/50 text-rose-300">Expense</span>';
+
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-slate-400 text-xs font-medium whitespace-nowrap">${formatDateOnly(t.datetime)}</td>
+                    <td class="py-4 px-6 text-slate-400 text-xs font-medium whitespace-nowrap">${formatTime12(t.datetime)}</td>
+                    <td class="py-4 px-6 text-white font-medium">${escapeHtml(t.description)}</td>
+                    <td class="py-4 px-6 text-slate-300">${escapeHtml(t.category)}</td>
+                    <td class="py-4 px-6 whitespace-nowrap">${methodBadge}</td>
+                    <td class="py-4 px-6 whitespace-nowrap">${typeBadge}</td>
+                    <td class="py-4 px-6 text-right ${amtColor} whitespace-nowrap">${amtFormatted}</td>
+                    <td class="py-4 px-6 text-center whitespace-nowrap">
+                        <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-950/30 transition-all cursor-pointer" title="Delete">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function initCharts() {
+            if (typeof Chart === 'undefined') {
+                setTimeout(initCharts, 100);
+                return;
+            }
+
+            const ctx1 = document.getElementById('cashFlowChart').getContext('2d');
+            cashFlowChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['rgba(34, 197, 94, 0.85)', 'rgba(244, 63, 94, 0.85)'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.4)' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('paymentShareChart').getContext('2d');
+            paymentShareChartInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Online Money / Wallets', 'Cash in Hand'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(16, 185, 129, 0.85)'],
+                        borderColor: '#0f172a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 12 }, color: '#94a3b8' } }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (typeof Chart === 'undefined') return;
+            let totalIncome = 0, totalExpenses = 0, onlineTotal = 0, cashTotal = 0;
+
+            transactions.forEach(t => {
+                const amt = Number(t.amount);
+                if (t.type === 'INCOME') totalIncome += amt;
+                else totalExpenses += amt;
+
+                if (t.method === 'ONLINE') onlineTotal += amt;
+                else cashTotal += amt;
+            });
+
+            if (cashFlowChartInstance) {
+                cashFlowChartInstance.data.datasets[0].data = [totalIncome, totalExpenses];
+                cashFlowChartInstance.update();
+            }
+
+            if (paymentShareChartInstance) {
+                paymentShareChartInstance.data.datasets[0].data = [onlineTotal, cashTotal];
+                paymentShareChartInstance.update();
+            }
+        }
+    </script>
+</body>
+</html>
